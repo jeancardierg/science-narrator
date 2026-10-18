@@ -16,13 +16,29 @@ Do these in order. Each task fits one Codex session on the Plus plan.
 ### 1. Real-model regression test (slow)
 > Add `tests/test_slow_chatterbox.py`, marked `@pytest.mark.slow` and skipped unless `NARRATOR_SLOW=1` and `voices/voice.wav` exists. It renders `examples/demo.es.md` with `--asr auto` and asserts the following: `report.ok`, every chunk's WER ≤ 0.15, the length of `narration.wav` matches the report, and nothing is clipped (peak ≤ -1 dBFS). Register the `slow` marker in pyproject.
 
-### 2. Timeline export for editors (FCPXML + OTIO)
-> Add `--timeline fcpxml|otio` to `render`. It writes `timeline.fcpxml` (FCPXML 1.10, importable in DaVinci Resolve and Final Cut Pro) and/or `timeline.otio`. Each `segments/NNN.wav` is placed as a clip at its `start`, on an audio track named "Narration", with a marker per segment carrying the label. Put `opentimelineio` in a new optional extra `timeline`. Write the FCPXML by hand with `xml.etree`, so it needs no extra dependency. Test with FakeEngine by parsing the XML and checking clip offsets in frames at 25 fps.
+### 2. Timeline export for open-source editors (MLT + OTIO)
+> Add `--timeline mlt|otio` to `render`.
+> - `mlt` writes `timeline.mlt`, an MLT XML project that opens directly in **Shotcut** (and in `melt`). Write it by hand with `xml.etree`, so it needs no extra dependency.
+> - `otio` writes `timeline.otio` (OpenTimelineIO, Apache-2.0) for **Kdenlive**'s OTIO import. Put `opentimelineio` in a new optional extra `timeline`.
+>
+> In both formats, the video (if `--video` is given) goes on a video track. Each `segments/NNN.wav` is placed as a clip at its `start` on an audio track named "Narration", with a marker or guide per segment carrying the label. Test with FakeEngine by parsing the output and checking clip positions in frames at 25 fps. Open-source editors only: no FCPXML or other proprietary formats.
 
 ### 3. Cues from the editor
-> Add `narrator cues <file>`, which converts editor exports into a script skeleton `.md` with one `[HH:MM:SS.mmm] label` line per marker, followed by an empty line for the text:
-> (a) DaVinci Resolve marker EDL (`Timeline → Export → Timeline Markers to EDL`); (b) an SRT (keeps the text); (c) Final Cut / Resolve FCPXML markers.
+> Add `narrator cues <file>`, which converts editor exports into a script skeleton `.md` with one `[HH:MM:SS.mmm] label` line per marker, followed by an empty line for the text. Supported inputs:
+> (a) SRT, which keeps the text;
+> (b) Kdenlive project guides (`<guide>` / `kdenlive:docproperties.guides` in the `.kdenlive` file);
+> (c) Shotcut MLT markers (`shotcut:markers` in the `.mlt` file);
+> (d) a CMX3600 EDL with markers (generic).
+>
 > Test against small fixture files in `tests/fixtures/`.
+
+### 3b. FilmCraft placement (experimental)
+> FilmCraft (github.com/storytold/filmcraft, MIT/Apache-2.0, alpha) exposes every editing action through a CLI, a JSON control server and MCP.
+> 1. **Verify first:** read its current README/wiki and record the real command names, the server protocol and the version in `docs/filmcraft.md`. Do not guess the API.
+> 2. Add `narrator place --editor filmcraft <render_out_dir> --video <file> [--project out.<ext>]`. It creates or opens a project, imports the video, adds an audio track "Narration", places each `segments/NNN.wav` at its `start` from `report.json`, adds a marker per segment label, imports `narration.srt` if subtitles are supported, and saves the project. Prefer the CLI; use the JSON server only if the CLI can't do a step.
+> 3. Hide the editor behind a small `EditorAdapter` protocol (`open`, `import_media`, `place_clip`, `add_marker`, `save`) so Kdenlive/Shotcut (task 2) can share the call site.
+> 4. Tests: a fake adapter that records calls and asserts the clip positions. Add a `@pytest.mark.slow` test that runs only when the `filmcraft` binary is on PATH.
+> 5. Fail with a clear message if FilmCraft is missing or the version is unsupported, and suggest the Kdenlive path instead.
 
 ### 4. Cues from a scratch voice-over
 > Add `narrator cues --from-audio <video>`. If the existing video has a rough or temporary narration, transcribe it with the ASR backend using word timestamps (mlx-whisper `word_timestamps=True`, faster-whisper `word_timestamps=True`). Write a `.md` script with one cue per sentence, holding the transcribed text and `[start -> end]` slots, so you can rewrite the text and re-render it in your cloned voice at the same timing. Keep the ASR model in memory once. Add a unit test with a fake transcriber.

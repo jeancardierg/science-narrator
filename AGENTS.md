@@ -40,6 +40,7 @@ On the Mac with models installed (`bash install.sh`): `narrator render examples/
 - Apple Silicon (MPS) is the primary target. Keep CUDA and CPU paths working, and never hard-code a device.
 - No network calls except Hugging Face model downloads made by the libraries.
 - Use the `ffmpeg_exe()` / `rubberband_exe()` helpers. Never shell out to a bare `ffmpeg`.
+- **Open source only.** Every dependency, tool and target editor must be FOSS: Kdenlive, Shotcut, FilmCraft (experimental), Aegisub, Audacity and ffmpeg. No proprietary formats or integrations (no Resolve, Final Cut, FCPXML or iMovie) and no paid services or APIs.
 - Stay within the dependencies already in `pyproject.toml`. A new dependency needs a one-line justification in the PR description, and heavy ones go in an optional extra.
 
 ## Style

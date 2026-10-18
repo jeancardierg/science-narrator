@@ -159,19 +159,24 @@ Exit codes: `0` = everything fits, `2` = at least one segment overflows or overl
 
 ---
 
-## Syncing with the video — local tools (macOS)
+## Syncing with the video: open-source tools only (macOS)
 
-| Tool | Cost | Use it for |
+The whole chain is free and open source:
+- Chatterbox (MIT) for the voice
+- Whisper / mlx-whisper (MIT) for the transcription check
+- ffmpeg (LGPL/GPL) and Rubber Band (GPL) for audio processing
+- the editors below
+
+| Tool | License | Use it for |
 |---|---|---|
-| **DaVinci Resolve** | free | Best choice. Put cues on a subtitle track (*Effects → Titles → Subtitle*), then *File → Export → Subtitle…* to SRT. Import `narration.wav` at 00:00 or the per-segment WAVs. Fairlight handles ducking and EQ. |
-| **Kdenlive** | free, open source | Subtitle track with SRT import/export. Drop in `narration.wav`. |
-| **Shotcut** | free, open source | Subtitles panel exports SRT. Simple audio placement. |
-| **Final Cut Pro** | paid | Captions export to SRT. Auto-ducking with *Audio → Match*. |
-| **iMovie** | free | Only if you use `--mux` (no SRT or cue export). |
-| **Audacity** | free | Clean up or listen through segments if needed. |
-| **ffmpeg** | free | Used under the hood (`--mux`). |
+| **Kdenlive** | GPL | **Recommended.** Native Apple Silicon build. Add a subtitle track, type each narration line at the right moment, and export it as SRT. That SRT is your script, so run `narrator render cues.srt`. Then drop `narration.wav` at 00:00, or the per-segment WAVs. Use keyframed volume to duck the original audio. |
+| **[FilmCraft](https://github.com/storytold/filmcraft)** | MIT / Apache-2.0 | **Experimental (alpha).** A Premiere-style editor written in Rust. Every action can be scripted through its command line, JSON control server or MCP, so narration placement can be automated (see Codex task 3b). Work on copies of your files, and use Kdenlive for final delivery until it matures. |
+| **Shotcut** | GPL | A simpler alternative. The Subtitles panel creates and exports SRT; place `narration.wav` at 00:00. |
+| **Aegisub** | BSD | Frame-accurate subtitle timing against the video, if the editor's subtitle tools feel too coarse. Exports SRT. |
+| **Audacity** | GPL | Listen through or touch up individual segments. |
+| **ffmpeg** | LGPL/GPL | Used under the hood. `narrator render … --mux` writes the final video with no editor at all. |
 
-Any other editor works the same way, as long as it can import a WAV (and ideally SRT): put `narration.wav` at 00:00 and it's in sync.
+Any editor that can import a WAV, and ideally SRT, works the same way: put `narration.wav` at 00:00 and it's in sync.
 
 ---
 
