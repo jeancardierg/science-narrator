@@ -1,0 +1,19 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+*.egg-info/
+
+# personal voice samples + generated audio
+voices/*
+!voices/.gitkeep
+*.ref24k.wav
+.narrator-cache/
+*_out/
+*.wav
+*.mp3
+*.m4a
+*.mp4
+*.mov
